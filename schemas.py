@@ -12,7 +12,7 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 # Example schemas (replace with your own):
 
@@ -38,11 +38,34 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Gold shop specific schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class GoldItem(BaseModel):
+    """
+    Gold items for sale (bars, nuggets)
+    Collection name: "golditem"
+    """
+    name: str = Field(..., description="Name of the gold item")
+    type: str = Field(..., description="bar or nugget")
+    purity: float = Field(..., ge=0, le=24, description="Purity in karats (e.g., 24)")
+    weight_grams: float = Field(..., gt=0, description="Weight in grams")
+    price_usd: float = Field(..., gt=0, description="Price in USD")
+    image: Optional[str] = Field(None, description="Image URL for the item")
+    three_d_url: Optional[str] = Field(None, description="Spline/3D scene URL to render")
+    in_stock: bool = Field(True, description="Whether item is available")
+    badge: Optional[str] = Field(None, description="Optional label like 'Best Seller'")
+
+class OrderItem(BaseModel):
+    item_id: str
+    quantity: int = Field(..., gt=0)
+
+class Order(BaseModel):
+    """
+    Orders placed by customers
+    Collection name: "order"
+    """
+    customer_name: str
+    customer_email: str
+    shipping_address: str
+    items: List[OrderItem]
+    notes: Optional[str] = None
